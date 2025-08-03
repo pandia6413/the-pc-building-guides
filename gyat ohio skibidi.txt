@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8">
+  <title>PC Builder Demo</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f4f4f4; }
+    label, select, p { margin-top: 10px; display: block; }
+    .box { background: white; padding: 20px; border-radius: 8px; max-width: 600px; margin: auto; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>PC Builder Ελλάδας</h1>
+
+    <label for="cpu">Επεξεργαστής:</label>
+    <select id="cpu">
+      <option value="65">Ryzen 5 5500</option>
+      <option value="65">Ryzen 5 5600</option>
+      <option value="105">Ryzen 5 9600X</option>
+      <option value="105">Ryzen 7 7700X</option>
+      <option value="120">Ryzen 7 7800X3D</option>
+      <option value="120">Ryzen 5 9800X3D</option>
+    </select>
+
+    <label for="gpu">Κάρτα Γραφικών:</label>
+    <select id="gpu">
+      <option value="100">RX 6500 XT</option>
+      <option value="130">RX 6600</option>
+      <option value="160">RX 7600 XT</option>
+      <option value="180">RX 9060 XT (16GB)</option>
+      <option value="220">RTX 5070</option>
+      <option value="250">RTX 5070 Ti</option>
+      <option value="300">RX 9070 XT</option>
+      <option value="350">RTX 5080</option>
+    </select>
+
+    <p id="wattage"></p>
+    <p id="psu"></p>
+
+    <script>
+      const cpu = document.getElementById("cpu");
+      const gpu = document.getElementById("gpu");
+      const wattage = document.getElementById("wattage");
+      const psu = document.getElementById("psu");
+
+      function update() {
+        const cpuW = parseInt(cpu.value);
+        const gpuW = parseInt(gpu.value);
+        const totalW = cpuW + gpuW + 100; // +100 για υπόλοιπα parts
+
+        wattage.textContent = "Υπολογισμένα Watt συστήματος: " + totalW + "W";
+
+        let psuSuggestion;
+        if (totalW <= 450) psuSuggestion = "Πρόταση PSU: 500W";
+        else if (totalW <= 550) psuSuggestion = "Πρόταση PSU: 600W";
+        else if (totalW <= 650) psuSuggestion = "Πρόταση PSU: 700W";
+        else psuSuggestion = "Πρόταση PSU: 850W+";
+
+        psu.textContent = psuSuggestion;
+      }
+
+      cpu.addEventListener("change", update);
+      gpu.addEventListener("change", update);
+
+      update(); // αρχικό update
+    </script>
+  </div>
+</body>
+</html>
