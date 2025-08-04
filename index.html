@@ -1,70 +1,111 @@
 <!DOCTYPE html>
 <html lang="el">
 <head>
-  <meta charset="UTF-8">
-  <title>PC Builder Demo</title>
+  <meta charset="UTF-8" />
+  <title>PC Build Προτάσεις</title>
   <style>
-    body { font-family: Arial; padding: 20px; background: #f4f4f4; }
-    label, select, p { margin-top: 10px; display: block; }
-    .box { background: white; padding: 20px; border-radius: 8px; max-width: 600px; margin: auto; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+    body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: auto; }
+    select, input { padding: 6px; margin: 8px 0; width: 100%; }
+    h2, h3 { margin-top: 30px; }
+    .part { margin-bottom: 12px; }
+    .build { padding: 10px; border: 1px solid #ccc; margin-top: 15px; border-radius: 6px; background: #f9f9f9; }
   </style>
 </head>
 <body>
-  <div class="box">
-    <h1>PC Builder Ελλάδας</h1>
+  <h1>PC Part Picker</h1>
 
-    <label for="cpu">Επεξεργαστής:</label>
-    <select id="cpu">
-      <option value="65">Ryzen 5 5500</option>
-      <option value="65">Ryzen 5 5600</option>
-      <option value="105">Ryzen 5 9600X</option>
-      <option value="105">Ryzen 7 7700X</option>
-      <option value="120">Ryzen 7 7800X3D</option>
-      <option value="120">Ryzen 5 9800X3D</option>
-    </select>
+  <label for="budget">Budget €:</label>
+  <input type="number" id="budget" placeholder="π.χ. 1000">
+  <button onclick="suggestBuilds()">Πρότεινε Build</button>
 
-    <label for="gpu">Κάρτα Γραφικών:</label>
-    <select id="gpu">
-      <option value="100">RX 6500 XT</option>
-      <option value="130">RX 6600</option>
-      <option value="160">RX 7600 XT</option>
-      <option value="180">RX 9060 XT (16GB)</option>
-      <option value="220">RTX 5070</option>
-      <option value="250">RTX 5070 Ti</option>
-      <option value="300">RX 9070 XT</option>
-      <option value="350">RTX 5080</option>
-    </select>
+  <h2>Build Προτάσεις</h2>
+  <div id="suggestions"></div>
 
-    <p id="wattage"></p>
-    <p id="psu"></p>
+  <script>
+    const parts = {
+      cpu: [
+        { name: "Ryzen 5 5500", price: 90, socket: "AM4", watt: 65 },
+        { name: "Ryzen 5 5600", price: 120, socket: "AM4", watt: 65 },
+        { name: "Ryzen 5 9600X", price: 220, socket: "AM5", watt: 95 },
+        { name: "Ryzen 7 7700X", price: 280, socket: "AM5", watt: 105 },
+        { name: "Ryzen 7 7800X3D", price: 370, socket: "AM5", watt: 120 },
+        { name: "Ryzen 5 9800X3D", price: 450, socket: "AM5", watt: 125 }
+      ],
+      gpu: [
+        { name: "RX 6500 XT", price: 130, watt: 100 },
+        { name: "RX 6600", price: 170, watt: 132 },
+        { name: "RX 7600 XT", price: 250, watt: 160 },
+        { name: "RX 9060 XT (16GB)", price: 360, watt: 170 },
+        { name: "RTX 5070", price: 430, watt: 200 },
+        { name: "RTX 5070 Ti", price: 490, watt: 220 },
+        { name: "RX 9070 XT", price: 530, watt: 240 },
+        { name: "RTX 5080", price: 650, watt: 280 }
+      ],
+      ram: [
+        { name: "16GB DDR4", price: 55, type: "DDR4" },
+        { name: "32GB DDR4", price: 95, type: "DDR4" },
+        { name: "16GB DDR5", price: 70, type: "DDR5" },
+        { name: "32GB DDR5", price: 110, type: "DDR5" }
+      ],
+      motherboard: [
+        { name: "B550 AM4", price: 100, socket: "AM4", ramType: "DDR4" },
+        { name: "X570 AM4", price: 130, socket: "AM4", ramType: "DDR4" },
+        { name: "B650 AM5", price: 140, socket: "AM5", ramType: "DDR5" },
+        { name: "X670 AM5", price: 190, socket: "AM5", ramType: "DDR5" }
+      ],
+      psu: [
+        { name: "550W Bronze", price: 70, watt: 550 },
+        { name: "650W Bronze", price: 85, watt: 650 },
+        { name: "750W Gold", price: 110, watt: 750 }
+      ],
+      storage: [
+        { name: "SSD 500GB", price: 45 },
+        { name: "SSD 1TB", price: 75 },
+        { name: "SSD 2TB", price: 120 }
+      ]
+    };
 
-    <script>
-      const cpu = document.getElementById("cpu");
-      const gpu = document.getElementById("gpu");
-      const wattage = document.getElementById("wattage");
-      const psu = document.getElementById("psu");
+    function suggestBuilds() {
+      const budget = parseFloat(document.getElementById("budget").value);
+      const builds = [];
 
-      function update() {
-        const cpuW = parseInt(cpu.value);
-        const gpuW = parseInt(gpu.value);
-        const totalW = cpuW + gpuW + 100; // +100 για υπόλοιπα parts
-
-        wattage.textContent = "Υπολογισμένα Watt συστήματος: " + totalW + "W";
-
-        let psuSuggestion;
-        if (totalW <= 450) psuSuggestion = "Πρόταση PSU: 500W";
-        else if (totalW <= 550) psuSuggestion = "Πρόταση PSU: 600W";
-        else if (totalW <= 650) psuSuggestion = "Πρόταση PSU: 700W";
-        else psuSuggestion = "Πρόταση PSU: 850W+";
-
-        psu.textContent = psuSuggestion;
+      for (let cpu of parts.cpu) {
+        for (let gpu of parts.gpu) {
+          for (let mb of parts.motherboard.filter(m => m.socket === cpu.socket)) {
+            for (let ram of parts.ram.filter(r => r.type === mb.ramType)) {
+              for (let ssd of parts.storage) {
+                const power = cpu.watt + gpu.watt + 100;
+                const psu = parts.psu.find(p => p.watt >= power * 1.2);
+                if (!psu) continue;
+                const total = cpu.price + gpu.price + mb.price + ram.price + ssd.price + psu.price;
+                if (total <= budget) {
+                  builds.push({ cpu, gpu, mb, ram, ssd, psu, total });
+                }
+              }
+            }
+          }
+        }
       }
 
-      cpu.addEventListener("change", update);
-      gpu.addEventListener("change", update);
+      const container = document.getElementById("suggestions");
+      container.innerHTML = builds.length === 0 ? "<p>Δεν βρέθηκαν builds για το budget.</p>" : "";
 
-      update(); // αρχικό update
-    </script>
-  </div>
+      builds.sort((a, b) => a.total - b.total).slice(0, 5).forEach(build => {
+        const b = document.createElement("div");
+        b.className = "build";
+        b.innerHTML = `
+          <strong>Build με σύνολο: €${build.total}</strong><br>
+          CPU: ${build.cpu.name}<br>
+          GPU: ${build.gpu.name}<br>
+          Motherboard: ${build.mb.name}<br>
+          RAM: ${build.ram.name}<br>
+          Storage: ${build.ssd.name}<br>
+          PSU: ${build.psu.name} (${build.psu.watt}W)
+        `;
+        container.appendChild(b);
+      });
+    }
+  </script>
 </body>
 </html>
+
